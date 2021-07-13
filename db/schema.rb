@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_07_13_165306) do
+ActiveRecord::Schema.define(version: 2021_07_13_184530) do
 
   create_table "payout_lines", force: :cascade do |t|
     t.integer "place"
@@ -44,7 +44,7 @@ ActiveRecord::Schema.define(version: 2021_07_13_165306) do
     t.integer "player_id"
     t.integer "tournament_id"
     t.integer "reentry_number"
-    t.boolean "is_active"
+    t.boolean "is_active", default: true
   end
 
   create_table "tournament_types", force: :cascade do |t|
@@ -58,6 +58,8 @@ ActiveRecord::Schema.define(version: 2021_07_13_165306) do
     t.datetime "date_and_time"
     t.integer "type_id"
     t.integer "extra_prizepool"
+    t.boolean "is_reg_open", default: true
+    t.boolean "is_active", default: true
   end
 
 end

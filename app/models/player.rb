@@ -27,9 +27,9 @@ class Player < ActiveRecord::Base
     tournament = Tournament.find(tournament_id)
     type = TournamentType.find(tournament.type_id)
     total_fees = type.buy_in + type.calc_access_fee + type.calc_staff_fee
-    if self.account_balance >= total_fees && !is_registered_for(tournament_id)
+    if self.account_balance >= total_fees && !is_registered_for(tournament_id) && tournament.is_reg_open
       self.account_balance -= total_fees
-      Ticket.create(player_id: id, tournament_id: tournament.id, reentry_number: 0, is_active: true)
+      Ticket.create(player_id: id, tournament_id: tournament.id, reentry_number: 0)
       puts "You have been registered for #{type.name} on #{tournament.date_and_time}"
     elsif is_registered_for(tournament_id)
       puts "You are already registered for #{type.name}"
