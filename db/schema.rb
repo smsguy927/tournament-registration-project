@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_07_13_025716) do
+ActiveRecord::Schema.define(version: 2021_07_13_045805) do
 
   create_table "penalties", force: :cascade do |t|
     t.string "name"
@@ -39,6 +39,7 @@ ActiveRecord::Schema.define(version: 2021_07_13_025716) do
     t.string "name"
     t.integer "buy_in"
     t.integer "max_reentries"
+    t.decimal "percent_paid", precision: 4, scale: 2
   end
 
   create_table "tournaments", force: :cascade do |t|

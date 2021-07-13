@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# TODO: change this
+
 class Ticket < ActiveRecord::Base
   belongs_to :player
   belongs_to :tournament
