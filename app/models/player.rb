@@ -23,6 +23,20 @@ class Player < ActiveRecord::Base
     player_ids_in_tournament.include?(id)
   end
 
+  def current_ticket(tournament_id)
+    Ticket.all.filter do |ticket|
+      ticket.tournament_id == tournament_id && ticket.player_id == id
+    end.max_by(&:reentry_number)
+  end
+
+  #   def tournament(tournament_id)
+  #     Tournament.find(tournament_id)
+  #   end
+  #
+  #   def tournament_type(tournament_id)
+  #     TournamentType.find(tournament(tournament_id).type_id)
+  #   end
+
   def register(tournament_id)
     tournament = Tournament.find(tournament_id)
     type = TournamentType.find(tournament.type_id)
@@ -36,5 +50,43 @@ class Player < ActiveRecord::Base
     else
       puts "You do not have enough money to register for #{type.name}"
     end
+  end
+
+  def reenter(tournament_id)
+    tournament = Tournament.find(tournament_id)
+    type = TournamentType.find(tournament.type_id)
+    total_fees = type.buy_in + type.calc_staff_fee
+    ticket = current_ticket(tournament_id)
+    has_enough_money = self.account_balance >= total_fees
+    has_a_ticket = !ticket.nil?
+    is_reg_open = tournament.is_reg_open
+    is_under_reentry_limit = has_a_ticket && ticket.reentry_number < type.max_reentries
+    reentry_conditions = [has_enough_money, has_a_ticket, is_reg_open, is_under_reentry_limit]
+    if reentry_conditions.all? { |condition| condition == true }
+      self.account_balance -= total_fees
+      ticket.is_active = false
+      Ticket.create(player_id: id, tournament_id: tournament.id,
+                    reentry_number: ticket.reentry_number + 1)
+      puts "You have reentered #{type.name}."
+    else
+      condition_false_count = 0
+      reentry_conditions.each do |condition|
+        condition_false_count += 1 if condition == false
+      end
+      if condition_false_count > 1
+        puts "You are not allowed to reenter #{type.name} because of the following reasons: "
+      else
+        puts "You are not allowed to reenter #{type.name} because: "
+      end
+      display_reentry_failure_reasons(reentry_conditions)
+
+    end
+  end
+
+  def display_reentry_failure_reasons(reentry_conditions)
+    puts 'You do not have enough money to reenter.' if reentry_conditions[0] == false
+    puts 'You do not have a ticket for this tournament.' if reentry_conditions[1] == false
+    puts 'Registration has ended for this tournament.' if reentry_conditions[2] == false
+    puts 'You have exceeded the limit of reentries for this tournament.' if reentry_conditions[3] == false
   end
 end
