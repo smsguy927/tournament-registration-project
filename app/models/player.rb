@@ -10,11 +10,16 @@ class Player < ActiveRecord::Base
   end
 
   def deposit(amount)
-    self.account_balance += amount
+    new_balance = self.account_balance += amount
+    update(account_balance: new_balance)
   end
 
   def withdraw(amount)
-    self.account_balance -= amount
+    if self.account_balance - amount >= 0
+      new_balance = self.account_balance -= amount
+      update(account_balance: new_balance)
+    else
+      puts "You cannot withdraw $#{amount} because you have a balance of $#{self.account_balance}"
   end
 
   def is_registered_for(tournament_id)
@@ -29,6 +34,7 @@ class Player < ActiveRecord::Base
     end.max_by(&:reentry_number)
   end
 
+    # potential refactor
   #   def tournament(tournament_id)
   #     Tournament.find(tournament_id)
   #   end
