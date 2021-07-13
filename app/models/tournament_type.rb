@@ -6,6 +6,7 @@ class TournamentType < ActiveRecord::Base
   @@access_fee_percent = 15
   @@af_one_re_upcharge = 5
   @@af_multi_re_upcharge = 10
+  @@access_fee_minimum = 20
   @@staff_fee_percent = 5
   @@staff_fee_minimum = 5
 
@@ -17,7 +18,7 @@ class TournamentType < ActiveRecord::Base
     elsif max_reentries == 1
       access_fee + @@af_one_re_upcharge
     end
-    access_fee
+    access_fee < @@access_fee_minimum ? @@access_fee_minimum : access_fee
   end
 
   def calc_staff_fee

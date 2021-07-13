@@ -98,11 +98,38 @@ end
 
 TournamentType.destroy_all
 MAX_REENTRIES = 255
-TournamentType.create(name: 'Multi Reentry Bounty', buy_in: 60, max_reentries: MAX_REENTRIES, percent_paid: 10)
-TournamentType.create(name: 'More Payouts Freezeout', buy_in: 120, max_reentries: 0, percent_paid: 20)
-TournamentType.create(name: 'Afternoon Turbo', buy_in: 50, max_reentries: 1, percent_paid: 12.5)
-TournamentType.create(name: 'Multi Reentry', buy_in: 80, max_reentries: MAX_REENTRIES, percent_paid: 12.5)
-TournamentType.create(name: 'Mega Stack Single Reentry', buy_in: 120, max_reentries: 1, percent_paid: 12.5)
-TournamentType.create(name: 'Heart of Poker', buy_in: 200, max_reentries: MAX_REENTRIES, percent_paid: 12.5)
-TournamentType.create(name: 'Nighttime No Time', buy_in: 80, max_reentries: 1, percent_paid: 12.5)
-TournamentType.create(name: 'Sunday Super Stack', buy_in: 150, max_reentries: 1, percent_paid: 15)
+multi_reentry_bounty = TournamentType.create(name: 'Multi Reentry Bounty', buy_in: 60, max_reentries: MAX_REENTRIES, percent_paid: 10)
+more_payouts_freezeout = TournamentType.create(name: 'More Payouts Freezeout', buy_in: 120, max_reentries: 0, percent_paid: 20)
+afternoon_turbo = TournamentType.create(name: 'Afternoon Turbo', buy_in: 50, max_reentries: 1, percent_paid: 12.5)
+wacky_wednesday_freeroll = TournamentType.create(name: 'Wacky Wednesday Freeroll', buy_in: 0, max_reentries: 0, percent_paid: 15)
+double_stack = TournamentType.create(name: 'Double Stack', buy_in: 80, max_reentries: 0, percent_paid: 15)
+multi_reentry = TournamentType.create(name: 'Multi Reentry', buy_in: 80, max_reentries: MAX_REENTRIES, percent_paid: 12.5)
+mega_stack_single_reentry = TournamentType.create(name: 'Mega Stack Single Reentry', buy_in: 120, max_reentries: 1, percent_paid: 12.5)
+heart_of_poker = TournamentType.create(name: 'Heart of Poker', buy_in: 200, max_reentries: MAX_REENTRIES, percent_paid: 12.5)
+nighttime_no_time = TournamentType.create(name: 'Nighttime No Time', buy_in: 80, max_reentries: 1, percent_paid: 12.5)
+sunday_super_stack = TournamentType.create(name: 'Sunday Super Stack', buy_in: 150, max_reentries: 1, percent_paid: 15)
+
+Tournament.destroy_all
+AFTERNOON_START = '13:15'
+EVENING_START = '19:15'
+SPECIAL_START = '12:15'
+Tournament.create(date_and_time: "2021-07-19 #{AFTERNOON_START}", type_id: multi_reentry_bounty.id)
+Tournament.create(date_and_time: "2021-07-20 #{AFTERNOON_START}", type_id: afternoon_turbo.id)
+Tournament.create(date_and_time: "2021-07-21 #{AFTERNOON_START}", type_id: double_stack.id)
+Tournament.create(date_and_time: "2021-07-22 #{AFTERNOON_START}", type_id: multi_reentry.id)
+Tournament.create(date_and_time: "2021-07-23 #{AFTERNOON_START}", type_id: multi_reentry_bounty.id)
+Tournament.create(date_and_time: "2021-07-24 #{SPECIAL_START}", type_id: heart_of_poker.id)
+Tournament.create(date_and_time: "2021-07-25 #{AFTERNOON_START}", type_id: sunday_super_stack.id)
+Tournament.create(date_and_time: "2021-07-19 #{EVENING_START}", type_id: nighttime_no_time.id)
+Tournament.create(date_and_time: "2021-07-20 #{EVENING_START}", type_id: more_payouts_freezeout.id)
+Tournament.create(date_and_time: "2021-07-21 #{EVENING_START}", type_id: wacky_wednesday_freeroll.id)
+Tournament.create(date_and_time: "2021-07-22 #{EVENING_START}", type_id: mega_stack_single_reentry.id)
+Tournament.create(date_and_time: "2021-07-23 #{EVENING_START}", type_id: more_payouts_freezeout.id)
+Tournament.create(date_and_time: "2021-07-24 #{EVENING_START}", type_id: mega_stack_single_reentry.id)
+Tournament.create(date_and_time: "2021-07-25 #{EVENING_START}", type_id: nighttime_no_time.id)
+
+
+
+
+
+
