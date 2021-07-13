@@ -8,4 +8,12 @@ class Player < ActiveRecord::Base
     "#{self.first_name} #{self.last_name}"
   end
 
+  def deposit(amount)
+    self.account_balance += amount
+  end
+
+  def withdraw(amount)
+    self.account_balance -= amount
+  end
+
 end
