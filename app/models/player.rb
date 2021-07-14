@@ -55,6 +55,22 @@ class Player < ActiveRecord::Base
     end.max_by(&:reentry_number)
   end
 
+  def tournament_by_id(tour_id)
+    Tournament.find(tour_id)
+  end
+
+  def type_by_tour_id(tour_id)
+    TournamentType.find(tournament.type_id)
+  end
+
+  def calc_reg_fees
+    #todo
+  end
+
+  def calc_reentry_fees
+    #todo
+  end
+
   def register(tournament_id)
     tournament = Tournament.find(tournament_id)
     type = TournamentType.find(tournament.type_id)
