@@ -87,13 +87,15 @@ elsif logged_in == true
                 end
             end
         when "Logout"
-            puts "You have been successfully signed out"
-            logged_in = false
-            current_user = nil
+            # confirm = prompt.yes?("Are you sure you would like to log out?")
+            if prompt.yes?("Are you sure you would like to log out?")
+                puts "You have been successfully signed out"
+                logged_in = false
+                current_user = nil
+            end
     end
 
 end
-
 
 end
 
