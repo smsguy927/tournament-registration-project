@@ -55,26 +55,20 @@ class Player < ActiveRecord::Base
     end.max_by(&:reentry_number)
   end
 
-  def tournament_by_id(tour_id)
-    Tournament.find(tour_id)
-  end
-
   def type_by_tour_id(tour_id)
-    TournamentType.find(tournament.type_id)
+    TournamentType.find(Tournament.find(tour_id).type_id)
   end
 
-  def calc_reg_fees
-    #todo
-  end
-
-  def calc_reentry_fees
-    #todo
+  def issue_refund(tour_id)
+    type = type_by_tour_id(tour_id)
+    refund_amount = type.buy_in + type.calc_reg_fee
+    update(account_balance: balance + refund_amount)
   end
 
   def register(tournament_id)
     tournament = Tournament.find(tournament_id)
-    type = TournamentType.find(tournament.type_id)
-    total_fees = type.buy_in + type.calc_access_fee + type.calc_staff_fee
+    type = type_by_tour_id(tournament_id)
+    total_fees = type.buy_in + type.calc_reg_fee
     if self.account_balance >= total_fees && !is_registered_for(tournament_id) && tournament.is_reg_open
       self.account_balance -= total_fees
       Ticket.create(player_id: id, tournament_id: tournament.id, reentry_number: 0)
@@ -133,6 +127,7 @@ class Player < ActiveRecord::Base
     # TODO issue refund
     if is_registered_for(tournament_id) && reentries(tournament_id).zero? && current_ticket(tournament_id).is_active
       Ticket.destroy(current_ticket(tournament_id))
+      issue_refund(tournament_id)
     end
   end
 end

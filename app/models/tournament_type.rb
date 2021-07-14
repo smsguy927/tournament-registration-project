@@ -10,7 +10,7 @@ class TournamentType < ActiveRecord::Base
   @@staff_fee_percent = 5
   @@staff_fee_minimum = 5
 
-  # @return [int]
+  # @return [Integer]
   def calc_access_fee
     access_fee = buy_in * @@access_fee_percent / 100
     if max_reentries > 1
@@ -25,5 +25,9 @@ class TournamentType < ActiveRecord::Base
     staff_fee = buy_in.round(2) * @@staff_fee_percent / 100
     staff_fee = @@staff_fee_minimum if staff_fee.zero?
     staff_fee
+  end
+
+  def calc_reg_fee
+    calc_access_fee + calc_staff_fee
   end
 end
