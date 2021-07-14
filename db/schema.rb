@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_07_13_213639) do
+ActiveRecord::Schema.define(version: 2021_07_14_180253) do
 
   create_table "payout_lines", force: :cascade do |t|
     t.integer "place"
-    t.integer "players_paid"
+    t.integer "places_paid"
     t.decimal "percent", precision: 4, scale: 2
   end
 
@@ -37,7 +37,8 @@ ActiveRecord::Schema.define(version: 2021_07_13_213639) do
 
   create_table "prizes", force: :cascade do |t|
     t.integer "tournament_id"
-    t.integer "payout_table_id"
+    t.integer "payout_line_id"
+    t.integer "value"
   end
 
   create_table "tickets", force: :cascade do |t|

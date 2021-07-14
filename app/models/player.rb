@@ -20,6 +20,7 @@ class Player < ActiveRecord::Base
       update(account_balance: new_balance)
     else
       puts "You cannot withdraw $#{amount} because you have a balance of $#{self.account_balance}"
+    end
   end
 
   def is_registered_for(tournament_id)
