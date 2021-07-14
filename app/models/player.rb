@@ -71,7 +71,7 @@ class Player < ActiveRecord::Base
     reentry_conditions = [has_enough_money, has_a_ticket, is_reg_open, is_under_reentry_limit]
     if reentry_conditions.all? { |condition| condition == true }
       self.account_balance -= total_fees
-      ticket.is_active = false
+      ticket.update(is_active: false)
       Ticket.create(player_id: id, tournament_id: tournament.id,
                     reentry_number: ticket.reentry_number + 1)
       puts "You have reentered #{type.name}."

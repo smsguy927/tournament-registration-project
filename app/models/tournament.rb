@@ -30,6 +30,7 @@ class Tournament < ActiveRecord::Base
   end
 
   def calculate_total_prizepool
+    update(extra_prizepool: 0) if extra_prizepool.nil?
     calculate_total_players * buy_in + extra_prizepool
   end
 
@@ -48,7 +49,7 @@ class Tournament < ActiveRecord::Base
   end
 
   def calc_prize_value(place)
-    payout_line(place).percent * total_prizepool
+    payout_line(place).percent * total_prizepool / 100
   end
 
   def make_prize(line_id, value)
@@ -72,7 +73,8 @@ class Tournament < ActiveRecord::Base
   end
 
   def prize_value(place)
-    Prize.all.find{|prize| prize.place == place}.value
+    found_prize = Prize.all.find{|prize| prize.place == place}
+    found_prize&.value
   end
 
   def display_places_paid
@@ -80,7 +82,7 @@ class Tournament < ActiveRecord::Base
     second = 2
     third = 3
     i = 1
-    while i < places_paid
+    while i < places_paid + 1
       if i == first
         puts '1st: $'
       elsif i == second
@@ -97,18 +99,19 @@ class Tournament < ActiveRecord::Base
   end
 
   def announce_reg_closed
-    puts "Registration for #{tournament_name} has closed. There were #{total_players} entries. The total prizepool is \
-          $#{total_prizepool}. We are paying the top #{places_paid} places. First place will win $#{first_place} all \
-          the way down to a min cash of #{min_cash}. There are #{remaining_players} of you left. Good luck the rest \
+    # TODO need to fix the way this is displayed
+    puts "Registration for #{tournament_name} has closed. There were #{total_players} entries. The total prizepool is
+          $#{total_prizepool}. We are paying the top #{places_paid} places. First place will win $#{first_place} all
+          the way down to a min cash of #{min_cash}. There are #{remaining_players} of you left. Good luck the rest
           of the way. All of the tournament stats will be accurate from this point forward."
     display_places_paid
   end
 
   def close_registration
-    is_reg_open.update(false)
-    total_players.update(calculate_total_players)
-    total_prizepool.update(calculate_total_prizepool)
-    places_paid.update(calculate_places_paid)
+    update(is_reg_open: false)
+    update(total_players: calculate_total_players)
+    update(total_prizepool: calculate_total_prizepool)
+    update(places_paid: calculate_places_paid)
     make_all_prizes
     announce_reg_closed
   end
