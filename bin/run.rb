@@ -58,12 +58,34 @@ elsif logged_in == true
             tournament_datetime = prompt.ask("Date and time?")
             tournament_extra_prize = prompt.ask("What's the extra prizepool?")
 
+
+
             # new_tournament = Tournament.create(name: tournament_name, type_id: tournament_type, date_and_time: tournament_datetime, extra_prizepool: tournament_extra_prize, is_reg_open: true, is_active: true)
-            puts "New tournament created!"
+            puts "New tournament created! Check out your new tournament along all other active tournaments in the All Tournaments section."
         when "All tournaments"
+            
         when "Your tournaments"
         when "Tournament history"
         when "View Account Balance"
+            exit_page = false
+            while exit_page == false
+            current_amount = current_user.account_balance
+            puts "You currently have $#{current_amount} in your account"
+            account_transaction = prompt.select("What would you like to do?", ["Deposit", "Withdraw", "Back"])
+                if account_transaction == "Deposit"
+                    deposit_amount = prompt.ask("How much would you like to deposit?").to_i
+                    current_user.account_balance += deposit_amount
+                    puts "Thank you for depositing $#{deposit_amount} into your account. Your current balance is now $#{current_user.account_balance}."
+                elsif account_transaction == "Withdraw"
+                    withdraw_amount = prompt.ask("How much would you like to withdraw?").to_i
+                    if withdraw_amount < current_amount
+                        current_user.account_balance -= withdraw_amount
+                        puts "You have successfully withdrawn $#{withdraw_amount} from your account. Your current balance is now $#{current_user.account_balance}."
+                    else puts "Error: Insufficient funds"
+                    end
+                else exit_page = true
+                end
+            end
         when "Logout"
             puts "You have been successfully signed out"
             logged_in = false
