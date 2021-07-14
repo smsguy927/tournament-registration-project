@@ -47,7 +47,7 @@ if logged_in == false
     end    
     
 elsif logged_in == true
-    player_home_options = ["Create a tournament", "All tournaments", "Your tournaments", "Tournament history", "View Account Balance", "Logout"]
+    player_home_options = ["Create a tournament", "Manage tournaments", "All tournaments", "Register for a tournament", "My active tournaments", "My tournament history", "View Account Balance", "Logout"]
     
     home_screen = prompt.select("Please select from the following options", player_home_options)
 
@@ -58,14 +58,89 @@ elsif logged_in == true
             tournament_datetime = prompt.ask("Date and time?")
             tournament_extra_prize = prompt.ask("What's the extra prizepool?")
 
-
-
             # new_tournament = Tournament.create(name: tournament_name, type_id: tournament_type, date_and_time: tournament_datetime, extra_prizepool: tournament_extra_prize, is_reg_open: true, is_active: true)
             puts "New tournament created! Check out your new tournament along all other active tournaments in the All Tournaments section."
+        when "Manage tournaments"
+            exit_page = false
+            while exit_page == false
+            active_tournament_list = [Tournament.all.where(is_active: true)]
+            active_tournament_list << "Go Back"
+            selected_tournament = prompt.select("Select a tournament you'd like to manage", active_tournament_list)
+            if selected_tournament == "Go Back"
+                exit_page = true
+            else
+                puts "You've selected:"
+                puts "Tournament ID: #{selected_tournament.id}"
+                puts "Tournament Name: #{selected_tournament.tournament_name}"
+                puts "Tournament Date: #{selected_tournament.date_and_time}"
+                puts "Total Players: #{selected_tournament.total_players}"
+                puts "Remaining Players: #{selected_tournament.remaining_players}"
+                puts "Total Prize Pool: #{selected_tournament.total_prizepool}"
+                answer = prompt.select("What would you like to do?", ["Manage players", "Close to new registrants", "End tournament", "Go Back"])
+                    case answer
+                    when "Close to new registrants"
+                        if prompt.yes?("Are you sure you would like to close the tournament to new registrants??")
+                            selected_tournament.close_registration
+                            puts "Registration has been closed for this tournament"
+                        end
+                    when "Manage players"
+                        exit_players = false
+                        while exit_players == false
+                            tournament_registrants = [selected_tournament.players]
+                            tournament_registrants << "Go Back"
+                            selected_player = prompt.select("Select a player in this tournament", tournament_registrants)
+                            if selected_player == "Go Back"
+                                exit_players = true
+                            else
+                                puts "You've selected:"
+                                puts "Player ID: #{selected_player.id}"
+                                puts "Player Name: #{selected_player.full_name}"
+                                if prompt.yes?("Would you like to remove #{selected_player.first_name} from the tournament?")
+                                    #Remove from tournament function
+                                    puts "#{selected_player.first_name} is no longer in the tournament."
+                                end
+                            end
+                        end
+                    when "End tournament"
+                        if prompt.yes?("Are you sure you would like to end the tournament??")
+                            selected_tournament.is_active = false
+                            puts "The tournament has officially ended."
+                        end
+                    end
+                end
+            end
         when "All tournaments"
-            
-        when "Your tournaments"
-        when "Tournament history"
+            tournament_list = Tournament.display_tournaments
+            puts tournament_list
+        when "Register for a tournament"
+            selected_tournament_id = prompt.ask("Please enter the Id for the tournament you'd like to register for.")
+            selected_tournament = Tournament.all.find(selected_tournament_id)
+            puts "You've Selected | ID: #{selected_tournament.id} | Date: #{selected_tournament.date_and_time} | #{selected_tournament.tournament_name} | Buy in : #{selected_tournament.buy_in} | Re-entries: #{selected_tournament.max_reentries} | Percent Paid #{selected_tournament.percent_paid}"
+            if prompt.yes?("Would you like to register for this tournament?")
+                current_user.register(selected_tournament_id)
+                puts "Congrats! You've been registered"
+            end 
+        when "My active tournaments"
+            exit_page = false
+            while exit_page == false
+            user_tournament_list = [current_user.tournaments.where(is_active: true)]
+            user_tournament_list << "Go Back"
+            selected_tournament = prompt.select("Select a tournament for more information", user_tournament_list)
+            if selected_tournament == "Go Back"
+                exit_page = true
+            else
+                puts "You've selected:"
+                puts "Tournament ID: #{selected_tournament.id}"
+                puts "Tournament Name: #{selected_tournament.tournament_name}"
+                puts "Tournament Date: #{selected_tournament.date_and_time}"
+                answer = prompt.select("What would you like to do?", ["Withdraw from competition", "Go Back"])
+                    if answer == "Withdraw from competition"
+                    #Stuff to unregister here
+                    end
+                end
+            end
+        when "My tournament history"
+            puts current_user.tournaments.where(is_active: false)
         when "View Account Balance"
             exit_page = false
             while exit_page == false
@@ -83,7 +158,6 @@ elsif logged_in == true
                 end
             end
         when "Logout"
-            # confirm = prompt.yes?("Are you sure you would like to log out?")
             if prompt.yes?("Are you sure you would like to log out?")
                 puts "You have been successfully signed out"
                 logged_in = false
