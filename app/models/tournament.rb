@@ -116,18 +116,18 @@ class Tournament < ActiveRecord::Base
   end
 
   def place_str(count)
-    first = 1
-    second = 2
-    third = 3
-    if count == first
-      '1st'
-    elsif count == second
-      '2nd'
-    elsif count == third
-      '3rd'
-    else
-      "#{count}th"
-    end
+    min_default = 4
+    max_default = 20
+    suffix_place = count % 100
+    suffixes = { 1 => 'st', 2 => 'nd', 3 => 'rd' }
+    suffixes.default = 'th'
+    suffix = if suffix_place >= min_default && suffix_place <= max_default
+               suffixes.default
+             else
+               suffix_place = suffix_place % 10
+               suffixes[suffix_place]
+             end
+    "#{count}#{suffix}"
   end
 
   def display_places_paid

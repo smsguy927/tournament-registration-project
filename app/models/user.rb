@@ -154,10 +154,10 @@ class User < ActiveRecord::Base
   end
 
   def display_reentry_failure_reasons(reentry_conditions)
-    puts 'You do not have enough money to reenter.' if reentry_conditions[:has_enough_money] == false
-    puts 'You do not have a ticket for this tournament.' if reentry_conditions[:has_a_ticket] == false
-    puts 'Registration has ended for this tournament.' if reentry_conditions[:is_reg_open] == false
-    if reentry_conditions[:is_under_reentry_limit] == false
+    puts 'You do not have enough money to reenter.' unless reentry_conditions[:has_enough_money]
+    puts 'You do not have a ticket for this tournament.' unless reentry_conditions[:has_a_ticket]
+    puts 'Registration has ended for this tournament.' unless reentry_conditions[:is_reg_open]
+    unless reentry_conditions[:is_under_reentry_limit]
       puts 'You have exceeded the limit of reentries for this tournament.'
     end
   end
