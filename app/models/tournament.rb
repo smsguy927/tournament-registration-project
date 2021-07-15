@@ -45,6 +45,10 @@ class Tournament < ActiveRecord::Base
     active_players.length
   end
 
+  def current_ticket_by_player_id(player_id)
+    active_players.find { |ticket| ticket.player_id == player_id }
+  end
+
   def calculate_total_prizepool
     update(extra_prizepool: 0) if extra_prizepool.nil?
     calculate_total_players * buy_in + extra_prizepool
@@ -182,6 +186,23 @@ class Tournament < ActiveRecord::Base
     update(is_reg_open: false, is_active: false, remaining_players: 0, remaining_prizepool: 0)
   end
 
+  def penalize(player_id, penalty_id)
+    points_to_disqualify = 12
+    current_ticket = current_ticket_by_player_id(player_id)
+    pt = PenaltyTicket.create(ticket_id: current_ticket.id, penalty_id: penalty_id)
+    puts <<~HEREDOC
+      You have received #{pt.points} for #{pt.name}. If you receive #{points_to_disqualify},
+      you will be disqualified.
+    HEREDOC
+    disqualify(player_id, current_ticket) if current_ticket.total_points >= points_to_disqualify
+  end
+
+  def disqualify(player_id, current_ticket)
+    current_ticket.update(is_active: false)
+    update(remaining_players: remaining_players - 1) unless is_reg_open
+    puts "#{Player.find(player_id).full_name}, you have been disqualified."
+  end
+
   def self.display_tournaments
     Tournament.all.map do |tournament|
       "ID: #{tournament.id} | Date: #{tournament.date_and_time} | #{tournament.tournament_name}
@@ -196,6 +217,4 @@ class Tournament < ActiveRecord::Base
       | Percent Paid #{type.percent_paid}"
     end
   end
-
 end
-
