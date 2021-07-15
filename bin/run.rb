@@ -59,6 +59,15 @@ elsif logged_in == true
             tournament_extra_prize = prompt.ask("What's the extra prizepool?")
 
             # new_tournament = Tournament.create(name: tournament_name, type_id: tournament_type, date_and_time: tournament_datetime, extra_prizepool: tournament_extra_prize, is_reg_open: true, is_active: true)
+            # Here's how to create a tournament
+            #
+            # Tournament.create(date_and_time: "2021-07-20 13:15", type_id: afternoon_turbo.id)
+            # Use Tournament.display_types to display tournament types with IDs
+            #
+            # Here's how to create a tournament type
+            #
+            # TournamentType.create(name: 'Afternoon Turbo', buy_in: 50, max_reentries: 1, percent_paid: 12.5)
+            #
             puts "New tournament created! Check out your new tournament along all other active tournaments in the All Tournaments section."
         when "Manage tournaments"
             exit_page = false
