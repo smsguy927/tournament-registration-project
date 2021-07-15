@@ -27,19 +27,23 @@ class Player < ActiveRecord::Base
     account_balance
   end
 
-  def view_active_tournaments
+  def active_tournaments
     Ticket.all.filter { |ticket| ticket.is_active && ticket.player_id == id }
   end
 
-  def view_past_tournaments
+  def past_tournaments
     Ticket.all.filter { |ticket| !ticket.is_active && ticket.player_id == id }
+  end
+
+  def past_cashes
+    past_tournaments.filter{ |ticket| ticket.prize.positive? }
   end
 
   def self.past_tournaments
     Tournament.all.filter { |tour| tour.!is_active }
   end
 
-  def is_registered_for(tournament_id)
+  def registered_for?(tournament_id)
     selected_tournament_tickets = Ticket.all.filter { |ticket| ticket.tournament_id == tournament_id }
     player_ids_in_tournament = selected_tournament_tickets.map(&:player_id)
     player_ids_in_tournament.include?(id)
@@ -55,8 +59,22 @@ class Player < ActiveRecord::Base
     end.max_by(&:reentry_number)
   end
 
+  def tournament(tour_id)
+    Tournament.find_by(id: tour_id)
+  end
+
   def type_by_tour_id(tour_id)
     TournamentType.find(Tournament.find(tour_id).type_id)
+  end
+
+  def total_reg_price(tour_id)
+    type = type_by_tour_id(tour_id)
+    type.buy_in + type.calc_reg_fee
+  end
+
+  def total_reentry_price(tour_id)
+    type = type_by_tour_id(tour_id)
+    type.buy_in + type.calc_staff_fee
   end
 
   def issue_refund(tour_id)
@@ -65,15 +83,27 @@ class Player < ActiveRecord::Base
     update(account_balance: balance + refund_amount)
   end
 
-  def register(tournament_id)
-    tournament = Tournament.find(tournament_id)
-    type = type_by_tour_id(tournament_id)
-    total_fees = type.buy_in + type.calc_reg_fee
-    if self.account_balance >= total_fees && !is_registered_for(tournament_id) && tournament.is_reg_open
-      self.account_balance -= total_fees
-      Ticket.create(player_id: id, tournament_id: tournament.id, reentry_number: 0)
-      puts "You have been registered for #{type.name} on #{tournament.date_and_time}"
-    elsif is_registered_for(tournament_id)
+  def can_register(tour_id)
+    self.account_balance >= total_reg_price(tour_id) && !registered_for?(tour_id) && tournament(tour_id).is_reg_open
+  end
+
+  def register(tour_id)
+    type = type_by_tour_id(tour_id)
+    if can_register(tour_id)
+      pass_registration(tour_id, type)
+    else
+      fail_registration(tour_id, type)
+    end
+  end
+
+  def pass_registration(tour_id, type)
+    withdraw(total_reg_price(tour_id))
+    Ticket.create(player_id: id, tournament_id: tour_id, reentry_number: 0)
+    puts "You have been registered for #{type.name} on #{tournament(tour_id).date_and_time}"
+  end
+
+  def fail_registration(tour_id, type)
+    if registered_for?(tour_id)
       puts "You are already registered for #{type.name}"
     else
       puts "You do not have enough money to register for #{type.name}"
@@ -81,38 +111,45 @@ class Player < ActiveRecord::Base
   end
 
   def reenter(tour_id)
-    tournament = Tournament.find(tour_id)
-    type = TournamentType.find(tournament.type_id)
+    type = type_by_tour_id(tour_id)
     total_fees = type.buy_in + type.calc_staff_fee
-    ticket = current_ticket(tour_id)
-    puts ticket.class
-    has_enough_money = self.account_balance >= total_fees
-    has_a_ticket = !ticket.nil?
-    is_reg_open = tournament.is_reg_open
-    is_under_reentry_limit = ticket.nil? || reentries(tour_id) < type.max_reentries
-    reentry_conditions = { has_enough_money: has_enough_money,
-                           has_a_ticket: has_a_ticket,
-                           is_reg_open: is_reg_open,
-                           is_under_reentry_limit: is_under_reentry_limit }
+    reentry_conditions = make_reentry_conditions(tour_id, type)
     if reentry_conditions.values.all? { |condition| condition == true }
-      self.account_balance -= total_fees
-      ticket.update(is_active: false)
-      Ticket.create(player_id: id, tournament_id: tournament.id,
-                    reentry_number: ticket.reentry_number + 1)
-      puts "You have reentered #{type.name}."
+      pass_reentry(total_fees)
     else
-      condition_false_count = 0
-      reentry_conditions.each do |condition|
-        condition_false_count += 1 if condition == false
-      end
-      if condition_false_count > 1
-        puts "You are not allowed to reenter #{type.name} because of the following reasons: "
-      else
-        puts "You are not allowed to reenter #{type.name} because: "
-      end
-      display_reentry_failure_reasons(reentry_conditions)
-
+      fail_reentry(reentry_conditions, type)
     end
+  end
+
+  def make_reentry_conditions(tour_id, type)
+    {
+      has_enough_money: account_balance >= total_reentry_price(tour_id),
+      has_a_ticket: !current_ticket(tour_id).nil?,
+      is_reg_open: tournament(tour_id).is_reg_open,
+      is_under_reentry_limit: current_ticket(tour_id).nil? || reentries(tour_id) < type.max_reentries
+    }
+  end
+
+  def pass_reentry(total_fees)
+    self.account_balance -= total_fees
+    ticket&.update(is_active: false)
+    Ticket.create(player_id: id, tournament_id: tournament.id,
+                  reentry_number: ticket && ticket.reentry_number + 1)
+    puts "You have reentered #{type.name}."
+  end
+
+  def fail_reentry(reentry_conditions, type)
+    condition_false_count = 0
+    reentry_conditions.each do |condition|
+      condition_false_count += 1 if condition == false
+    end
+    if condition_false_count > 1
+      puts "You are not allowed to reenter #{type.name} because of the following reasons: "
+    else
+      puts "You are not allowed to reenter #{type.name} because: "
+    end
+    display_reentry_failure_reasons(reentry_conditions)
+
   end
 
   def display_reentry_failure_reasons(reentry_conditions)
@@ -125,7 +162,7 @@ class Player < ActiveRecord::Base
   end
 
   def cancel_registration(tournament_id)
-    if is_registered_for(tournament_id) && reentries(tournament_id).zero? && current_ticket(tournament_id).is_active
+    if registered_for?(tournament_id) && reentries(tournament_id).zero? && current_ticket(tournament_id).is_active
       Ticket.destroy(current_ticket(tournament_id))
       issue_refund(tournament_id)
     end
