@@ -90,10 +90,10 @@ PayoutLine.create(place: 10, players_paid: 12, percent: 1.75)
 PayoutLine.create(place: 11, players_paid: 12, percent: 1.75)
 PayoutLine.create(place: 12, players_paid: 12, percent: 1.75)
 
-Player.destroy_all
+User.destroy_all
 100.times do
-  Player.create(first_name: Faker::Name.first_name, last_name: Faker::Name.last_name,
-                join_date: Faker::Date.forward(days: rand(1..100)), account_balance: rand(50..500))
+  User.create(first_name: Faker::Name.first_name, last_name: Faker::Name.last_name,
+              join_date: Faker::Date.forward(days: rand(1..100)), account_balance: rand(50..500))
 end
 
 TournamentType.destroy_all

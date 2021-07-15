@@ -17,12 +17,12 @@ if logged_in == false
         initial_balance = prompt.ask("How much would you like to transfer as an initial amount to your account?")
         # password = prompt.mask("Create a Password:")
 
-        existing_user = Player.all.find{|player| player.first_name == first_name && player.last_name == last_name}
+        existing_user = User.all.find{|player| player.first_name == first_name && player.last_name == last_name}
 
         if first_name == existing_user.first_name && last_name == existing_user.last_name
             puts "A user with that name already exists"
         else 
-            current_user = Player.create(first_name: first_name, last_name: last_name, account_balance: initial_balance) #&& player.password == password
+            current_user = User.create(first_name: first_name, last_name: last_name, account_balance: initial_balance) #&& player.password == password
             puts "Welcome to Virtual Poker, #{current_user.first_name}"
             logged_in = true
         end
@@ -31,8 +31,8 @@ if logged_in == false
         first_name = prompt.ask("Enter your First Name:")
         last_name = prompt.ask("Enter your Last Name:")
         # password = prompt.mask("Create a Password:")
-        # role = prompt.select("What is your role?", ["Player", "Dealer", "Manager"])
-        current_user = Player.all.find{|player| player.first_name == first_name && player.last_name == last_name} #&& player.password == password
+        # role = prompt.select("What is your role?", ["User", "Dealer", "Manager"])
+        current_user = User.all.find{|player| player.first_name == first_name && player.last_name == last_name} #&& player.password == password
         # binding.pry
         if current_user
             puts "Welcome back, #{current_user.first_name}"
@@ -102,8 +102,8 @@ elsif logged_in == true
                                 exit_players = true
                             else
                                 puts "You've selected:"
-                                puts "Player ID: #{selected_player.id}"
-                                puts "Player Name: #{selected_player.full_name}"
+                                puts "User ID: #{selected_player.id}"
+                                puts "User Name: #{selected_player.full_name}"
                                 if prompt.yes?("Would you like to remove #{selected_player.first_name} from the tournament?")
                                     #Remove from tournament function
                                     puts "#{selected_player.first_name} is no longer in the tournament."

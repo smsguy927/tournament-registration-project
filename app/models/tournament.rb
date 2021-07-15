@@ -49,6 +49,18 @@ class Tournament < ActiveRecord::Base
     active_players.find { |ticket| ticket.player_id == player_id }
   end
 
+  def current_tickets_by_player_id(player_id)
+    active_players.filter { |ticket| ticket.player_id == player_id }
+  end
+
+  def validate_player_tickets(player_tickets)
+    if player_tickets.length.zero?
+      puts "User #{player_id} is not in the tournament. Please try again"
+    elsif player_tickets.length > 1
+      puts "WARNING: User #{player_id} has more than 1 active ticket in the current tournament."
+    end
+  end
+
   def calculate_total_prizepool
     update(extra_prizepool: 0) if extra_prizepool.nil?
     calculate_total_players * buy_in + extra_prizepool
@@ -128,7 +140,7 @@ class Tournament < ActiveRecord::Base
   end
 
   def announce_reg_closed
-    # TODO: need to fix the way this is displayed
+
     puts <<~HEREDOC
       Registration for #{tournament_name} has closed. There were #{total_players} entries. The total prizepool is
       $#{total_prizepool}. We are paying the top #{places_paid} places. First place will win $#{first_place} all
@@ -150,14 +162,8 @@ class Tournament < ActiveRecord::Base
   end
 
   def knockout_player(player_id)
-    player_tickets = Ticket.all.filter do |ticket|
-      ticket.player_id == player_id && ticket.is_active && ticket.tournament_id == id
-    end
-    if player_tickets.length.zero?
-      puts "Player #{player_id} is not in the tournament. Please try again"
-    elsif player_tickets.length > 1
-      puts "WARNING: Player #{player_id} has more than 1 active ticket in the current tournament."
-    end
+    player_tickets = current_ticket_by_player_id(player_id)
+    validate_player_tickets(player_tickets)
 
     player_tickets.each do |ticket|
       ticket.update(is_active: false)
@@ -178,12 +184,18 @@ class Tournament < ActiveRecord::Base
     ticket.update(prize: prize_value(ticket.place))
     update(remaining_prizepool: remaining_prizepool - ticket.prize)
     puts "Congratulations, you won #{place_str(ticket.place)} place!"
-    Player.find(player_id).deposit(ticket.prize)
+    User.find(player_id).deposit(ticket.prize)
     puts "$#{ticket.prize} has been added to your account."
   end
 
   def close
     update(is_reg_open: false, is_active: false, remaining_players: 0, remaining_prizepool: 0)
+  end
+
+  def list_of_penalties
+    Penalty.all.each do |penalty|
+      puts "ID: #{penalty.id} | #{penalty.name} | Points: #{penalty.points}"
+    end
   end
 
   def penalize(player_id, penalty_id)
@@ -200,7 +212,7 @@ class Tournament < ActiveRecord::Base
   def disqualify(player_id, current_ticket)
     current_ticket.update(is_active: false)
     update(remaining_players: remaining_players - 1) unless is_reg_open
-    puts "#{Player.find(player_id).full_name}, you have been disqualified."
+    puts "#{User.find(player_id).full_name}, you have been disqualified."
   end
 
   def self.display_tournaments
