@@ -128,6 +128,35 @@ Tournament.create(date_and_time: "2021-07-23 #{EVENING_START}", type_id: more_pa
 Tournament.create(date_and_time: "2021-07-24 #{EVENING_START}", type_id: mega_stack_single_reentry.id)
 Tournament.create(date_and_time: "2021-07-25 #{EVENING_START}", type_id: nighttime_no_time.id)
 
+Penalty.destroy_all
+Penalty.create(name: 'Acting Out of Turn', points: 2)
+Penalty.create(name: 'Exposing Cards With Action Pending', points: 2)
+Penalty.create(name: 'Premature Exposing Cards During Hand for Hand', points: 5)
+Penalty.create(name: 'Folding to no Action', points: 3)
+Penalty.create(name: 'Starting in the Wrong Seat', points: 3)
+Penalty.create(name: 'Leaving the Table With Action Pending', points: 4)
+Penalty.create(name: 'Leaving the Table With Action Pending Before a Break', points: 6)
+Penalty.create(name: 'Rabbit Hunting', points: 7)
+Penalty.create(name: 'Dodging Blinds', points: 7)
+Penalty.create(name: 'Discarding Hand During All-In Showdown', points: 5)
+Penalty.create(name: 'Splashing the Pot', points: 2)
+Penalty.create(name: 'Failure to Keep Cards Visible', points: 4)
+Penalty.create(name: 'Failure to Keep High Denomination Chips Visible', points: 5)
+Penalty.create(name: 'Throwing Cards off the Table', points: 8)
+Penalty.create(name: 'Excessive Foul Language', points: 5)
+Penalty.create(name: 'Super Excessive Foul Language', points: 10)
+Penalty.create(name: 'Soft Playing', points: 11)
+Penalty.create(name: 'Chip Dumping', points: 12)
+Penalty.create(name: 'Collusion', points: 12)
+Penalty.create(name: 'Cheating', points: 12)
+Penalty.create(name: 'Playing in the Wrong Tournament', points: 12)
+Penalty.create(name: 'Failure to Keep Chips Visible When Transferring Tables', points: 10)
+
+Role.destroy_all
+Role.create(name: 'Player', id: 1)
+Role.create(name: 'Dealer', id: 2)
+Role.create(name: 'Manager', id: 3)
+Role.create(name: 'Banned', id: 0)
 
 
 

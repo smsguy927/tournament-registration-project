@@ -3,6 +3,7 @@
 class User < ActiveRecord::Base
   has_many :tickets
   has_many :tournaments, through: :tickets
+  belongs_to :role
 
   # Existing Method from another project
   def full_name
