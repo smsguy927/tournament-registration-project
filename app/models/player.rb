@@ -32,7 +32,7 @@ class Player < ActiveRecord::Base
   end
 
   def view_past_tournaments
-    Ticket.all.filter { |ticket| ticket.!is_active && ticket.player_id == id }
+    Ticket.all.filter { |ticket| !ticket.is_active && ticket.player_id == id }
   end
 
   def self.past_tournaments
@@ -82,9 +82,10 @@ class Player < ActiveRecord::Base
 
   def reenter(tour_id)
     tournament = Tournament.find(tour_id)
-    type = TournamentType.find(tour_id.type_id)
+    type = TournamentType.find(tournament.type_id)
     total_fees = type.buy_in + type.calc_staff_fee
     ticket = current_ticket(tour_id)
+    puts ticket.class
     has_enough_money = self.account_balance >= total_fees
     has_a_ticket = !ticket.nil?
     is_reg_open = tournament.is_reg_open
@@ -93,7 +94,7 @@ class Player < ActiveRecord::Base
                            has_a_ticket: has_a_ticket,
                            is_reg_open: is_reg_open,
                            is_under_reentry_limit: is_under_reentry_limit }
-    if reentry_conditions.all? { |condition| condition == true }
+    if reentry_conditions.values.all? { |condition| condition == true }
       self.account_balance -= total_fees
       ticket.update(is_active: false)
       Ticket.create(player_id: id, tournament_id: tournament.id,
@@ -124,7 +125,6 @@ class Player < ActiveRecord::Base
   end
 
   def cancel_registration(tournament_id)
-    # TODO issue refund
     if is_registered_for(tournament_id) && reentries(tournament_id).zero? && current_ticket(tournament_id).is_active
       Ticket.destroy(current_ticket(tournament_id))
       issue_refund(tournament_id)
