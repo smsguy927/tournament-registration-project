@@ -25,12 +25,24 @@ class Tournament < ActiveRecord::Base
     TournamentType.find(type_id).percent_paid
   end
 
+  def all_players
+    Ticket.all.filter { |ticket| ticket.tournament_id == id }
+  end
+
+  def active_players
+    all_players.filter(&:is_active)
+  end
+
+  def active_player_ids
+    active_players.map(&:player_id)
+  end
+
   def calculate_total_players
-    Ticket.all.filter { |ticket| ticket.tournament_id == id }.length
+    all_players.length
   end
 
   def calculate_remaining_players
-    Ticket.all.filter { |ticket| ticket.tournament_id == id && ticket.is_active }.length
+    active_players.length
   end
 
   def calculate_total_prizepool
@@ -53,7 +65,7 @@ class Tournament < ActiveRecord::Base
   end
 
   def calc_prize_value(place)
-    payout_line(place).percent * total_prizepool / 100.round.to_i
+    payout_line(place).percent * total_prizepool / 100.round
   end
 
   def make_prize(line_id, value)
@@ -61,11 +73,17 @@ class Tournament < ActiveRecord::Base
   end
 
   def make_all_prizes
+    Prize.destroy_by(tournament_id: id)
     i = 1
     while i < places_paid + 1
       make_prize(payout_line(i).id, calc_prize_value(i))
       i += 1
     end
+  end
+
+  def pay_bubble
+    update(places_paid: places_paid + 1)
+    make_all_prizes
   end
 
   def first_place
@@ -86,21 +104,21 @@ class Tournament < ActiveRecord::Base
     second = 2
     third = 3
     if count == first
-      '1st: $'
+      '1st'
     elsif count == second
-      '2nd: $'
+      '2nd'
     elsif count == third
-      '3rd: $'
+      '3rd'
     else
-      "#{count}th: $"
+      "#{count}th"
     end
   end
 
   def display_places_paid
     i = 1
     while i < places_paid + 1
-      prize_value = calc_prize_value(i)
-      puts place_str(i) + prize_value.to_s
+      prize_value = calc_prize_value(i).to_i
+      puts "#{place_str(i)}: $#{prize_value}"
       i += 1
     end
   end
@@ -121,9 +139,47 @@ class Tournament < ActiveRecord::Base
     update(total_players: calculate_total_players)
     update(remaining_players: calculate_remaining_players)
     update(total_prizepool: calculate_total_prizepool)
+    update(remaining_prizepool: total_prizepool)
     update(places_paid: calculate_places_paid)
     make_all_prizes
     announce_reg_closed
+  end
+
+  def knockout_player(player_id)
+    player_tickets = Ticket.all.filter do |ticket|
+      ticket.player_id == player_id && ticket.is_active && ticket.tournament_id == id
+    end
+    if player_tickets.length.zero?
+      puts "Player #{player_id} is not in the tournament. Please try again"
+    elsif player_tickets.length > 1
+      puts "WARNING: Player #{player_id} has more than 1 active ticket in the current tournament."
+    end
+
+    player_tickets.each do |ticket|
+      ticket.update(is_active: false)
+      next if is_reg_open
+
+      ticket.update(place: remaining_players)
+      if remaining_players <= places_paid
+        award_prize(player_id, ticket)
+      else
+        puts "Unfortunately, there is no prize for #{place_str(ticket.place)} place.
+              Better luck next time."
+      end
+      update(remaining_players: remaining_players - 1)
+    end
+  end
+
+  def award_prize(player_id, ticket)
+    ticket.update(prize: prize_value(ticket.place))
+    update(remaining_prizepool: remaining_prizepool - ticket.prize)
+    puts "Congratulations, you won #{place_str(ticket.place)} place!"
+    Player.find(player_id).deposit(ticket.prize)
+    puts "$#{ticket.prize} has been added to your account."
+  end
+
+  def close
+    update(is_reg_open: false, is_active: false, remaining_players: 0, remaining_prizepool: 0)
   end
 
   def self.display_tournaments
@@ -140,4 +196,6 @@ class Tournament < ActiveRecord::Base
       | Percent Paid #{type.percent_paid}"
     end
   end
+
 end
+
