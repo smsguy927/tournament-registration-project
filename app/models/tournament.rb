@@ -93,11 +93,13 @@ class Tournament < ActiveRecord::Base
   end
 
   def make_prize(line_id, value)
-    Prize.create(tournament_id: id, payout_line_id: line_id, value: value)
+    np = Prize.create(tournament_id: id, payout_line_id: line_id, value: value)
+    puts np.payout_line_id
+    puts(Prize.all.map{|pz| pz.payout_line_id})
   end
 
   def make_all_prizes
-    Prize.destroy_by(tournament_id: id)
+    Prize.destroy_all
     i = 1
     while i < places_paid + 1
       make_prize(payout_line(i).id, calc_prize_value(i))
@@ -119,7 +121,7 @@ class Tournament < ActiveRecord::Base
   end
 
   def prize_value(place)
-    found_prize = Prize.all.find { |prize| prize.place == place }
+    found_prize = Prize.all.find { |prize| prize.calc_place == place }
     found_prize&.value
   end
 
@@ -148,7 +150,7 @@ class Tournament < ActiveRecord::Base
   end
 
   def announce_reg_closed
-
+    puts(Prize.all.map{|pz| pz.payout_line_id})
     puts <<~HEREDOC
       Registration for #{tournament_name} has closed. There were #{total_players} entries. The total prizepool is
       $#{total_prizepool}. We are paying the top #{places_paid} places. First place will win $#{first_place} all
