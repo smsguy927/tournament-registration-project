@@ -217,16 +217,20 @@ class Tournament < ActiveRecord::Base
 
   def self.display_tournaments
     Tournament.all.map do |tournament|
-      "ID: #{tournament.id} | Date: #{tournament.date_and_time} | #{tournament.tournament_name}
-      | Buy in : #{tournament.buy_in} | Re-entries: #{tournament.max_reentries}
-      | Percent Paid #{tournament.percent_paid}"
+      <<~HEREDOC
+        ID: #{tournament.id} | Date: #{tournament.date_and_time} | #{tournament.tournament_name}
+        | Buy in : #{tournament.buy_in} | Re-entries: #{tournament.max_reentries}
+        | Percent Paid #{tournament.percent_paid}
+      HEREDOC
     end
   end
 
   def self.display_types
     TournamentType.all.map do |type|
-      "ID: #{type.id} | #{type.name} | Buy in : #{type.buy_in} | Re-entries: #{type.max_reentries}
-      | Percent Paid #{type.percent_paid}"
+      <<~HEREDOC
+        ID: #{type.id} | #{type.name} | Buy in : #{type.buy_in} | Re-entries: #{type.max_reentries}
+        | Percent Paid #{type.percent_paid}
+      HEREDOC
     end
   end
 end

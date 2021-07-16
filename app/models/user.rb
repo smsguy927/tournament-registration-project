@@ -164,7 +164,7 @@ class User < ActiveRecord::Base
 
   def cancel_registration(tournament_id)
     if registered_for?(tournament_id) && reentries(tournament_id).zero? && current_ticket(tournament_id).is_active
-      Ticket.destroy(current_ticket(tournament_id))
+      Ticket.destroy(current_ticket(tournament_id).id)
       issue_refund(tournament_id)
     end
   end
