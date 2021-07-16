@@ -62,11 +62,14 @@ class Tournament < ActiveRecord::Base
   end
 
   def validate_player_tickets(player_tickets)
-    if player_tickets.length.zero?
+
+    if player_tickets.class != Ticket && player_tickets.length.zero?
       puts "User #{player_id} is not in the tournament. Please try again"
     elsif player_tickets.length > 1
       puts "WARNING: User #{player_id} has more than 1 active ticket in the current tournament."
+      return player_tickets
     end
+    [player_tickets]
   end
 
   def calculate_total_prizepool
@@ -95,7 +98,7 @@ class Tournament < ActiveRecord::Base
   def make_prize(line_id, value)
     np = Prize.create(tournament_id: id, payout_line_id: line_id, value: value)
     puts np.payout_line_id
-    puts(Prize.all.map{|pz| pz.payout_line_id})
+    puts(Prize.all.map(&:payout_line_id))
   end
 
   def make_all_prizes
@@ -150,7 +153,7 @@ class Tournament < ActiveRecord::Base
   end
 
   def announce_reg_closed
-    puts(Prize.all.map{|pz| pz.payout_line_id})
+    puts(Prize.all.map(&:payout_line_id))
     puts <<~HEREDOC
       Registration for #{tournament_name} has closed. There were #{total_players} entries. The total prizepool is
       $#{total_prizepool}. We are paying the top #{places_paid} places. First place will win $#{first_place} all
@@ -173,21 +176,20 @@ class Tournament < ActiveRecord::Base
 
   def knockout_player(player_id)
     player_tickets = current_ticket_by_player_id(player_id)
-    validate_player_tickets(player_tickets)
-
-    player_tickets.each do |ticket|
-      ticket.update(is_active: false)
-      next if is_reg_open
-
+    ticket = player_tickets
+    ticket.update(is_active: false)
+    unless is_reg_open
       ticket.update(place: remaining_players)
+      puts "#{User.find(player_id).full_name}"
       if remaining_players <= places_paid
         award_prize(player_id, ticket)
       else
+
         puts "Unfortunately, there is no prize for #{place_str(ticket.place)} place.
               Better luck next time."
       end
-      update(remaining_players: remaining_players - 1)
     end
+    update(remaining_players: remaining_players - 1)
   end
 
   def award_prize(player_id, ticket)
@@ -227,9 +229,7 @@ class Tournament < ActiveRecord::Base
 
   def self.display_tournaments
     Tournament.all.map do |tournament|
-
       "ID: #{tournament.id} | Date: #{tournament.date_and_time} | #{tournament.tournament_name} | Buy in : #{tournament.buy_in} | Fees : #{tournament.reg_fees} | Re-entries: #{tournament.max_reentries}| Percent Paid #{tournament.percent_paid}\n"
-
     end
   end
 
