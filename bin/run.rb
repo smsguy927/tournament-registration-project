@@ -224,7 +224,7 @@ while exit_app == false
                 if selected_tournament == "Go Back"
                     exit_page = true
                 elsif selected_tournament
-                    prompt.say("You've Selected | ID: #{selected_tournament.id} | Date: #{selected_tournament.date_and_time} | #{selected_tournament.tournament_name} | Buy in : #{selected_tournament.buy_in} | Re-entries: #{selected_tournament.max_reentries} | Percent Paid #{selected_tournament.percent_paid}", color: :blue)
+                    prompt.say("You've Selected | ID: #{selected_tournament.id} | Date: #{selected_tournament.date_and_time} | #{selected_tournament.tournament_name} | Buy in : #{selected_tournament.buy_in} | Fees: #{selected_tournament.reg_fees} Re-entries: #{selected_tournament.max_reentries} | Percent Paid #{selected_tournament.percent_paid}", color: :blue)
 
                     ticket = current_user.current_ticket(selected_tournament.id)
                     if ticket == nil

@@ -28,15 +28,15 @@ class User < ActiveRecord::Base
     account_balance
   end
 
-  def active_tournaments
+  def view_active_tournaments
     Ticket.all.filter { |ticket| ticket.is_active && ticket.player_id == id }
   end
 
-  def past_tournaments
+  def view_past_tournaments
     Ticket.all.filter { |ticket| !ticket.is_active && ticket.player_id == id }
   end
 
-  def past_cashes
+  def view_past_cashes
     past_tournaments.filter{ |ticket| ticket.prize.positive? }
   end
 
