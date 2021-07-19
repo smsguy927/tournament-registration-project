@@ -88,6 +88,11 @@ class User < ActiveRecord::Base
     self.account_balance >= total_reg_price(tour_id) && !registered_for?(tour_id) && tournament(tour_id).is_reg_open
   end
 
+  def can_reenter(tour_id, type)
+    reentry_conditions = make_reentry_conditions(tour_id, type)
+    reentry_conditions.values.all? { |condition| condition == true }
+  end
+
   def register(tour_id)
     type = type_by_tour_id(tour_id)
     if can_register(tour_id)
@@ -113,10 +118,9 @@ class User < ActiveRecord::Base
 
   def reenter(tour_id)
     type = type_by_tour_id(tour_id)
-    total_fees = type.buy_in + type.calc_staff_fee
     reentry_conditions = make_reentry_conditions(tour_id, type)
-    if reentry_conditions.values.all? { |condition| condition == true }
-      pass_reentry(total_fees)
+    if can_reenter(tour_id, type)
+      pass_reentry(type)
     else
       fail_reentry(reentry_conditions, type)
     end
@@ -131,8 +135,8 @@ class User < ActiveRecord::Base
     }
   end
 
-  def pass_reentry(total_fees)
-    self.account_balance -= total_fees
+  def pass_reentry(type)
+    self.account_balance -= type.calc_reentry_price
     ticket&.update(is_active: false)
     Ticket.create(player_id: id, tournament_id: tournament.id,
                   reentry_number: ticket && ticket.reentry_number + 1)

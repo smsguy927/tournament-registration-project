@@ -30,4 +30,8 @@ class TournamentType < ActiveRecord::Base
   def calc_reg_fee
     calc_access_fee + calc_staff_fee
   end
+
+  def calc_reentry_price
+    buy_in + calc_staff_fee
+  end
 end
